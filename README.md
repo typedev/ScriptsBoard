@@ -1,2 +1,11 @@
-# ScriptsBoard
- ScriptBoard is an extension for quickly launching your favorite scripts. 
+## ScriptBoard
+ScriptsBoard is an extension for quickly launching your favorite scripts in Robofont. 
+In order for scripts to run, they must follow this format:
+```
+	def main():
+		print ("place your code here")
+
+	if __name__ == "__main__":
+		main()
+
+```
