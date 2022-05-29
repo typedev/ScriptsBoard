@@ -23,7 +23,7 @@ from mojo.extensions import getExtensionDefault, setExtensionDefault
 
 _baseDefaultKey = "com.typedev.ScriptBoard"
 _dataDefaultKey = "%s.data" % _baseDefaultKey
-
+_version = '0.3'
 
 class ScriptBoardSettings(object):
 	_fallbackData = {'pos': (200,200,200,400), 'scripts': []}
@@ -54,7 +54,7 @@ class ScriptsBoard:
 		self._prefs.load()
 		self._pos = self._prefs.get('pos')
 		x, y, w, h = self._pos
-		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board')
+		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board %s' % _version)
 		self.w.setPosSize(self._pos)
 		self.w.scriptsListing = List((5,30,-5,-5),
 		                             items=[],
@@ -114,6 +114,7 @@ class ScriptsBoard:
 	def scriptsListDblClickCallback(self, sender):
 		idx = self.w.scriptsListing.getSelection()
 		name, path = self._prefs.get('scripts')[idx[0]]
+		path = path.replace('%s.py' % name, '')
 		print ('Running',name,path)
 		sys.path.append(path)
 		m = importlib.import_module(name)
@@ -132,7 +133,7 @@ class ScriptsBoard:
 		idx = self.w.scriptsListing.getSelection()
 		s = self._prefs.get('scripts')
 		for id in idx:
-			s.pop(id)
+			s.pop()
 		self.loadScriptsList()
 
 ScriptsBoard()

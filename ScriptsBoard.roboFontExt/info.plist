@@ -28,10 +28,10 @@
 	<key>name</key>
 	<string>ScriptsBoard</string>
 	<key>requiresVersionMajor</key>
-	<string>3</string>
+	<string>4</string>
 	<key>timeStamp</key>
-	<real>1653321018.5110312</real>
+	<real>1653829378.319181</real>
 	<key>version</key>
-	<string>1.0</string>
+	<string>0.3</string>
 </dict>
 </plist>
