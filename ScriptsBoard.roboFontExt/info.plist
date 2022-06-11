@@ -5,8 +5,6 @@
 	<key>addToMenu</key>
 	<array>
 		<dict>
-			<key>nestInSubmenus</key>
-			<true/>
 			<key>path</key>
 			<string>ScriptsBoard.py</string>
 			<key>preferredName</key>
@@ -22,16 +20,18 @@
 	<key>html</key>
 	<false/>
 	<key>launchAtStartUp</key>
-	<integer>0</integer>
+	<false/>
 	<key>mainScript</key>
 	<string></string>
 	<key>name</key>
 	<string>ScriptsBoard</string>
 	<key>requiresVersionMajor</key>
 	<string>4</string>
+	<key>requiresVersionMinor</key>
+	<string>0</string>
 	<key>timeStamp</key>
-	<real>1653829378.319181</real>
+	<real>1654981140.0924699</real>
 	<key>version</key>
-	<string>0.3</string>
+	<string>0.4</string>
 </dict>
 </plist>

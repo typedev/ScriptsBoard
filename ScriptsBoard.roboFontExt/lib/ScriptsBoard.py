@@ -2,6 +2,8 @@
 ScriptBoard is an extension for quickly launching your favorite scripts. 
 In order for scripts to run, they must follow this format:
 ```
+	__doc__ = 'description'
+
 	def main():
 		print ("place your code here")
 
@@ -21,21 +23,20 @@ from vanilla.dialogs import getFile
 
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 
-_baseDefaultKey = "com.typedev.ScriptBoard"
-_dataDefaultKey = "%s.data" % _baseDefaultKey
-_version = '0.3'
+
 
 class ScriptBoardSettings(object):
 	_fallbackData = {'pos': (200,200,200,400), 'scripts': []}
 
-	def __init__ (self):
+	def __init__ (self, settings):
+		self.settings = settings
 		self.load()
 
 	def load (self):
-		self.data = getExtensionDefault(_dataDefaultKey, self._fallbackData)
+		self.data = getExtensionDefault(self.settings['_dataDefaultKey'], self._fallbackData)
 
 	def save (self):
-		setExtensionDefault(_dataDefaultKey, self.data)
+		setExtensionDefault(self.settings['_dataDefaultKey'], self.data)
 
 	def get (self, key):
 		try:
@@ -49,25 +50,55 @@ class ScriptBoardSettings(object):
 
 
 class ScriptsBoard:
-	def __init__(self):
-		self._prefs = ScriptBoardSettings()
+	def __init__(self, parent = None):
+		_version = '0.4'
+		self.parent = parent
+		if not parent:
+			_baseDefaultKey = "com.typedev.ScriptBoard"
+			_dataDefaultKey = "%s.data" % _baseDefaultKey
+		else:
+			_baseDefaultKey = "com.typedev.ScriptBoard.%s" % self.parent.idName
+			_dataDefaultKey = "%s.data" % _baseDefaultKey
+
+		settings = dict(
+			_baseDefaultKey = _baseDefaultKey,
+			_dataDefaultKey = _dataDefaultKey
+		)
+
+		self._prefs = ScriptBoardSettings(settings)
 		self._prefs.load()
 		self._pos = self._prefs.get('pos')
 		x, y, w, h = self._pos
 		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board %s' % _version)
 		self.w.setPosSize(self._pos)
-		self.w.scriptsListing = List((5,30,-5,-5),
+		# self.w.toolbar = Group('auto')
+
+		self.w.scriptsListing = List((0,0,-0,-0),
 		                             items=[],
 		                             allowsMultipleSelection = False,
+		                             selectionCallback = self.scriptsListSelectionCallback,
 		                             doubleClickCallback=self.scriptsListDblClickCallback
 		                             )
-		self.w.btnAdd = Button((-65, 5, 27,20),title='+',
+		self.w.btnAdd = Button((-65, 5, 27, 20),title='+',
 		                           callback=self.btnAddCallback,
 		                           sizeStyle='regular',
 		                           )
-		self.w.btndel = Button((-35, 5, 27, 20), title = '-',   callback=self.btnDelCallback,
+		self.w.btnDel = Button((-35, 5, 27, 20), title = '-',   callback=self.btnDelCallback,
 		                       sizeStyle = 'regular',
 		)
+		self.w.textBox = TextEditor((0, 0, 0,-0), '', readOnly = True)
+
+		paneDescriptors = [
+			dict(view = self.w.scriptsListing, identifier = "pane1", minSize = (100), canCollapse = False),
+			dict(view = self.w.textBox, identifier = "pane2", minSize = (100), canCollapse = False),
+		]
+		self.w.splitView = SplitView((0, 30, -0, -32), paneDescriptors,
+		                                     isVertical = False,
+		                                     dividerStyle = 'thin',
+		                                     dividerThickness = 5)
+
+		self.w.btnRun = Button((5,-28,-5,20), title = 'Run', callback = self.scriptsListDblClickCallback)
+
 
 		# self.w.btnCompile.bind(key='r',modifiers=['command'])
 
@@ -119,15 +150,32 @@ class ScriptsBoard:
 		sys.path.append(path)
 		m = importlib.import_module(name)
 		importlib.reload(m)
-		m.main()
+		if self.parent:
+			m.main(self.parent)
+		else:
+			m.main()
 		# path = '/usr/local/bin/robofont -p "%s"' % path
 		# print (path)
 		# os.system(path)
+	def scriptsListSelectionCallback(self, sender):
+		idx = sender.getSelection()
+		if not idx: return
+		name, scriptpath = self._prefs.get('scripts')[idx[0]]
+		path = scriptpath.replace('%s.py' % name, '')
+		sys.path.append(path)
+		m = importlib.import_module(name)
+		importlib.reload(m)
+		txt = ''
+		if m.__doc__:
+			txt = m.__doc__
+		txt += '\n---\n%s' % scriptpath
+		self.w.textBox.set(txt)
 
 	def btnAddCallback(self, sender):
-		path = getFile()[0]
-		if path !=None:
-			self.addScriptToList( path )
+		paths = getFile(allowsMultipleSelection=True)
+		if paths:
+			for path in paths:
+				self.addScriptToList( path )
 
 	def btnDelCallback(self, sender):
 		idx = self.w.scriptsListing.getSelection()
@@ -136,4 +184,10 @@ class ScriptsBoard:
 			s.pop()
 		self.loadScriptsList()
 
-ScriptsBoard()
+
+def main (parent = None):
+	ScriptsBoard(parent)
+
+
+if __name__ == "__main__":
+	main ()
