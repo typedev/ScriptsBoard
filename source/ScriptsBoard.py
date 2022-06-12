@@ -77,19 +77,19 @@ class ScriptsBoard:
 		self.w.setPosSize(self._pos)
 
 		self.w.scriptsListing = List((0,0,-0,-0),
-		                             items=[],
+		                             items = [],
 		                             allowsMultipleSelection = False,
 		                             selectionCallback = self.scriptsListSelectionCallback,
-		                             doubleClickCallback=self.scriptsListDblClickCallback
+		                             doubleClickCallback = self.scriptsListDblClickCallback
 		                             )
 		self.w.btnAdd = Button((-65, 5, 27, 20),
-		                       title='+',
-		                       callback=self.btnAddCallback,
-		                       sizeStyle='regular'
+		                       title = '+',
+		                       callback = self.btnAddCallback,
+		                       sizeStyle = 'regular'
 		                       )
 		self.w.btnDel = Button((-35, 5, 27, 20),
 		                       title = '-',
-		                       callback=self.btnDelCallback,
+		                       callback = self.btnDelCallback,
 		                       sizeStyle = 'regular'
 		                       )
 		self.w.textBox = TextEditor((0, 0, 0,-0), '', readOnly = True)
@@ -155,7 +155,7 @@ class ScriptsBoard:
 
 
 	def scriptsListDblClickCallback(self, sender):
-		idx = sender.getSelection()
+		idx = self.w.scriptsListing.getSelection()
 		idname, name, path = self._prefs.get('scripts')[idx[0]]
 		path = path.replace('%s.py' % name, '')
 		print ('Running',name,path)

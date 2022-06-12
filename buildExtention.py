@@ -9,7 +9,7 @@
 name = "ScriptsBoard"
 description = 'ScriptsBoard is an extension for quickly launching your favorite scripts.'
 tags = 'workspace'
-version = "0.4"
+version = "0.5"
 mainScriptsList = ['ScriptsBoard']
 
 developer = "Alexander Lubovenko"
