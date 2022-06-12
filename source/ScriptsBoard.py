@@ -23,6 +23,10 @@ from vanilla.dialogs import getFile
 
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 
+import importlib
+import tdLibEssentials
+importlib.reload(tdLibEssentials)
+from tdLibEssentials import *
 
 
 class ScriptBoardSettings(object):
@@ -51,13 +55,13 @@ class ScriptBoardSettings(object):
 
 class ScriptsBoard:
 	def __init__(self, parent = None):
-		_version = '0.4'
+		_version = '0.5'
 		self.parent = parent
 		if not parent:
-			_baseDefaultKey = "com.typedev.ScriptBoard"
+			_baseDefaultKey = "com.typedev.ScriptBoard.v%s." % _version
 			_dataDefaultKey = "%s.data" % _baseDefaultKey
 		else:
-			_baseDefaultKey = "com.typedev.ScriptBoard.%s" % self.parent.idName
+			_baseDefaultKey = "com.typedev.ScriptBoard.v%s.%s" % (_version, self.parent.idName)
 			_dataDefaultKey = "%s.data" % _baseDefaultKey
 
 		settings = dict(
@@ -71,7 +75,6 @@ class ScriptsBoard:
 		x, y, w, h = self._pos
 		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board %s' % _version)
 		self.w.setPosSize(self._pos)
-		# self.w.toolbar = Group('auto')
 
 		self.w.scriptsListing = List((0,0,-0,-0),
 		                             items=[],
@@ -79,13 +82,16 @@ class ScriptsBoard:
 		                             selectionCallback = self.scriptsListSelectionCallback,
 		                             doubleClickCallback=self.scriptsListDblClickCallback
 		                             )
-		self.w.btnAdd = Button((-65, 5, 27, 20),title='+',
-		                           callback=self.btnAddCallback,
-		                           sizeStyle='regular',
-		                           )
-		self.w.btnDel = Button((-35, 5, 27, 20), title = '-',   callback=self.btnDelCallback,
-		                       sizeStyle = 'regular',
-		)
+		self.w.btnAdd = Button((-65, 5, 27, 20),
+		                       title='+',
+		                       callback=self.btnAddCallback,
+		                       sizeStyle='regular'
+		                       )
+		self.w.btnDel = Button((-35, 5, 27, 20),
+		                       title = '-',
+		                       callback=self.btnDelCallback,
+		                       sizeStyle = 'regular'
+		                       )
 		self.w.textBox = TextEditor((0, 0, 0,-0), '', readOnly = True)
 
 		paneDescriptors = [
@@ -98,33 +104,39 @@ class ScriptsBoard:
 		                                     dividerThickness = 5)
 
 		self.w.btnRun = Button((5,-28,-5,20), title = 'Run', callback = self.scriptsListDblClickCallback)
-
-
-		# self.w.btnCompile.bind(key='r',modifiers=['command'])
-
 		self.w.bind("close", self.windowClose)
 		self.loadScriptsList()
 		self.w.open()
+
 
 	def windowClose(self, sender):
 		self._prefs.set('pos',self.w.getPosSize())
 		self._prefs.save()
 
+
 	def loadScriptsList(self):
 		slist = []
 		self.w.scriptsListing.set([])
 		slist = self._prefs.get('scripts')
+		todelete = []
 		for scriptdata in slist:
-			name, path = scriptdata
-			self.w.scriptsListing.append(name)
+			idname, name, path = scriptdata
+			if os.path.exists(path):
+				self.w.scriptsListing.append(name)
+			else:
+				todelete.append(idname)
+		if todelete:
+			for idname in todelete:
+				print('Script: %s path: %s not founded..')
+				self.deleteScriptFromPrefs(idname = idname)
+
 
 	def addScriptToList(self, path):
 		nameraw = path.split('/')[-1]
 		name, ext = nameraw.split('.')
-		s = self._prefs.get('scripts')
+		slist = self._prefs.get('scripts')
 		if ext == 'py':
-			s.append((name,path))
-			# self._prefs.set('scripts',s)
+			slist.append((getUniqName(),name,path))
 			self.loadScriptsList()
 		elif ext == 'roboFontExt':
 			pass
@@ -143,8 +155,8 @@ class ScriptsBoard:
 
 
 	def scriptsListDblClickCallback(self, sender):
-		idx = self.w.scriptsListing.getSelection()
-		name, path = self._prefs.get('scripts')[idx[0]]
+		idx = sender.getSelection()
+		idname, name, path = self._prefs.get('scripts')[idx[0]]
 		path = path.replace('%s.py' % name, '')
 		print ('Running',name,path)
 		sys.path.append(path)
@@ -157,10 +169,12 @@ class ScriptsBoard:
 		# path = '/usr/local/bin/robofont -p "%s"' % path
 		# print (path)
 		# os.system(path)
+
+
 	def scriptsListSelectionCallback(self, sender):
 		idx = sender.getSelection()
 		if not idx: return
-		name, scriptpath = self._prefs.get('scripts')[idx[0]]
+		idname, name, scriptpath = self._prefs.get('scripts')[idx[0]]
 		path = scriptpath.replace('%s.py' % name, '')
 		sys.path.append(path)
 		m = importlib.import_module(name)
@@ -171,18 +185,28 @@ class ScriptsBoard:
 		txt += '\n---\n%s' % scriptpath
 		self.w.textBox.set(txt)
 
+
 	def btnAddCallback(self, sender):
 		paths = getFile(allowsMultipleSelection=True)
 		if paths:
 			for path in paths:
 				self.addScriptToList( path )
 
+
+	def deleteScriptFromPrefs(self, idname):
+		slist = self._prefs.get('scripts')
+		for idx, scriptdata in enumerate(slist):
+			_idname, _name, path = scriptdata
+			if _idname == idname:
+				del slist[idx]
+				break
+		self.loadScriptsList()
+
+
 	def btnDelCallback(self, sender):
 		idx = self.w.scriptsListing.getSelection()
-		s = self._prefs.get('scripts')
-		for id in idx:
-			s.pop()
-		self.loadScriptsList()
+		idname, name, path = self._prefs.get('scripts')[idx[0]]
+		self.deleteScriptFromPrefs(idname = idname)
 
 
 def main (parent = None):
