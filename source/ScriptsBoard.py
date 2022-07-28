@@ -162,12 +162,13 @@ class ScriptsBoard:
 		sys.path.append(path)
 		m = importlib.import_module(name)
 		importlib.reload(m)
-		if self.parent:
+		if self.parent and hasattr(m, 'main'):
 			m.main(self.parent)
-		else:
+		elif hasattr(m, 'main'):
 			m.main()
+		else:
+			print (__doc__)
 		# path = '/usr/local/bin/robofont -p "%s"' % path
-		# print (path)
 		# os.system(path)
 
 
