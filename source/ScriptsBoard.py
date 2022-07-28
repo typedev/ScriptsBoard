@@ -13,20 +13,20 @@ In order for scripts to run, they must follow this format:
 ```
 """
 
-import os, sys, importlib
-from AppKit import *
+import os, sys, importlib, string, random
+# from AppKit import *
 from mojo.UI import *
 from vanilla import *
 from vanilla.dialogs import getFile
 # from plistlib import readPlist
 
-
+from mojo.subscriber import Subscriber, registerRoboFontSubscriber
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 
-import importlib
-import tdLibEssentials
-importlib.reload(tdLibEssentials)
-from tdLibEssentials import *
+# import importlib
+# import tdLibEssentials
+# importlib.reload(tdLibEssentials)
+# from tdLibEssentials import *
 
 
 class ScriptBoardSettings(object):
@@ -51,18 +51,26 @@ class ScriptBoardSettings(object):
 	def set (self, key, value):
 		self.data[key] = value
 
+def getUniqName(cut=32):
+	def ran_gen (size, chars=string.ascii_uppercase + string.digits):
+		return ''.join(random.choice(chars) for x in range(size))
+	return 'uuid' + ran_gen(cut, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 
-class ScriptsBoard:
-	def __init__(self, parent = None):
-		_version = '0.5'
-		self.parent = parent
-		if not parent:
-			_baseDefaultKey = "com.typedev.ScriptBoard.v%s." % _version
-			_dataDefaultKey = "%s.data" % _baseDefaultKey
-		else:
-			_baseDefaultKey = "com.typedev.ScriptBoard.v%s.%s" % (_version, self.parent.idName)
-			_dataDefaultKey = "%s.data" % _baseDefaultKey
+class ScriptsBoardEmbedded(Subscriber):
+	debug = True
+
+	def build (self):
+		# self.editor = TextEditor((10, 10, -10, -0))
+
+		_version = '0.6'
+		# self.parent = parent
+		# if not parent:
+		_baseDefaultKey = "com.typedev.ScriptBoard.v%s." % _version
+		_dataDefaultKey = "%s.data" % _baseDefaultKey
+		# else:
+		# 	_baseDefaultKey = "com.typedev.ScriptBoard.v%s.%s" % (_version, self.parent.idName)
+		# 	_dataDefaultKey = "%s.data" % _baseDefaultKey
 
 		settings = dict(
 			_baseDefaultKey = _baseDefaultKey,
@@ -71,47 +79,85 @@ class ScriptsBoard:
 
 		self._prefs = ScriptBoardSettings(settings)
 		self._prefs.load()
-		self._pos = self._prefs.get('pos')
-		x, y, w, h = self._pos
-		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board %s' % _version)
-		self.w.setPosSize(self._pos)
-
-		self.w.scriptsListing = List((0,0,-0,-0),
+		# self._pos = self._prefs.get('pos')
+		# x, y, w, h = self._pos
+		self.w = Group((0,0,-0,-0)) #,minSize = (100, 200), title = 'Scripts Board %s' % _version
+		# self.w.setPosSize(self._pos)
+		self.w.flex = Group('auto')
+		# self.w.g2 = Group('auto')
+		# self.w.g3 = Group('auto')
+		# self.w.g4 = Group('auto')
+		self.w.btnAdd = Button('auto',
+		                       title = '+',
+		                       callback = self.btnAddCallback,
+		                       sizeStyle = 'regular'
+		                       )
+		self.w.btnDel = Button('auto',
+		                       title = '-',
+		                       callback = self.btnDelCallback,
+		                       sizeStyle = 'regular'
+		                       )
+		self.w.scriptsListing = List('auto',
 		                             items = [],
 		                             allowsMultipleSelection = False,
 		                             selectionCallback = self.scriptsListSelectionCallback,
 		                             doubleClickCallback = self.scriptsListDblClickCallback
 		                             )
-		self.w.btnAdd = Button((-65, 5, 27, 20),
-		                       title = '+',
-		                       callback = self.btnAddCallback,
-		                       sizeStyle = 'regular'
-		                       )
-		self.w.btnDel = Button((-35, 5, 27, 20),
-		                       title = '-',
-		                       callback = self.btnDelCallback,
-		                       sizeStyle = 'regular'
-		                       )
-		self.w.textBox = TextEditor((0, 0, 0,-0), '', readOnly = True)
 
-		paneDescriptors = [
-			dict(view = self.w.scriptsListing, identifier = "pane1", minSize = (100), canCollapse = False),
-			dict(view = self.w.textBox, identifier = "pane2", minSize = (100), canCollapse = False),
+		self.w.textBox = TextEditor('auto', '', readOnly = True)
+		self.w.btnRun = Button('auto', title = 'Run', callback = self.scriptsListDblClickCallback)
+
+
+		rules = [
+			# Horizontal
+			"H:|-border-[flex]-border-[btnAdd]-border-[btnDel(==btnAdd)]-border-|",
+			# "H:|-border-[btnAdd]-border-[btnDel(==btnAdd)]-border-|",
+
+			"H:|-0-[scriptsListing]-0-|",
+			"H:|-0-[textBox]-0-|",
+			"H:|-border-[btnRun]-border-|",
+			# Vertical
+			"V:|-border-[flex]-border-[scriptsListing]-space-[textBox(==scriptsListing)]-border-[btnRun]-border-|",
+			"V:|-border-[btnAdd]-border-[scriptsListing]-space-[textBox(==scriptsListing)]-border-[btnRun]-border-|",
+			"V:|-border-[btnDel]-border-[scriptsListing]-space-[textBox(==scriptsListing)]-border-[btnRun]-border-|",
 		]
-		self.w.splitView = SplitView((0, 30, -0, -32), paneDescriptors,
-		                                     isVertical = False,
-		                                     dividerStyle = 'thin',
-		                                     dividerThickness = 5)
+		metrics = {
+			"border": 5,
+			"space": 2
+		}
+		self.w.addAutoPosSizeRules(rules, metrics)
 
-		self.w.btnRun = Button((5,-28,-5,20), title = 'Run', callback = self.scriptsListDblClickCallback)
-		self.w.bind("close", self.windowClose)
+		# paneDescriptors = [
+		# 	dict(view = self.w.scriptsListing, identifier = "pane1", minSize = (100), canCollapse = False),
+		# 	dict(view = self.w.textBox, identifier = "pane2", minSize = (100), canCollapse = False),
+		# ]
+		# self.w.splitView = SplitView((0, 30, -0, -32), paneDescriptors,
+		#                                      isVertical = False,
+		#                                      dividerStyle = 'thin',
+		#                                      dividerThickness = 5)
+
+
+		# self.w.bind("close", self.windowClose)
 		self.loadScriptsList()
-		self.w.open()
+		# self.w.open()
 
 
-	def windowClose(self, sender):
-		self._prefs.set('pos',self.w.getPosSize())
-		self._prefs.save()
+	def roboFontWantsInspectorViews (self, info):
+		registerRoboFontSubscriber(ScriptsBoardEmbedded)
+		# create an inspector item
+		item = dict(label = "Scripts Board", view = self.w, minSize=300, size=300,collapsed=True, canResize=True)
+		# insert or append the item to the list of inspector panes
+		info["viewDescriptions"].insert(0, item)
+
+
+
+	# def __init__(self, parent = None):
+
+
+	#
+	# def windowClose(self, sender):
+	# 	# self._prefs.set('pos',self.w.getPosSize())
+	# 	self._prefs.save()
 
 
 	def loadScriptsList(self):
@@ -138,6 +184,7 @@ class ScriptsBoard:
 		if ext == 'py':
 			slist.append((getUniqName(),name,path))
 			self.loadScriptsList()
+			self._prefs.save()
 		elif ext == 'roboFontExt':
 			pass
 			# print 'extension', name
@@ -162,9 +209,9 @@ class ScriptsBoard:
 		sys.path.append(path)
 		m = importlib.import_module(name)
 		importlib.reload(m)
-		if self.parent and hasattr(m, 'main'):
-			m.main(self.parent)
-		elif hasattr(m, 'main'):
+		# if self.parent and hasattr(m, 'main'):
+		# 	m.main(self.parent)
+		if hasattr(m, 'main'):
 			m.main()
 		else:
 			print (__doc__)
@@ -192,6 +239,7 @@ class ScriptsBoard:
 		if paths:
 			for path in paths:
 				self.addScriptToList( path )
+			self._prefs.save()
 
 
 	def deleteScriptFromPrefs(self, idname):
@@ -200,6 +248,7 @@ class ScriptsBoard:
 			_idname, _name, path = scriptdata
 			if _idname == idname:
 				del slist[idx]
+				self._prefs.save()
 				break
 		self.loadScriptsList()
 
@@ -208,10 +257,12 @@ class ScriptsBoard:
 		idx = self.w.scriptsListing.getSelection()
 		idname, name, path = self._prefs.get('scripts')[idx[0]]
 		self.deleteScriptFromPrefs(idname = idname)
+		self._prefs.save()
 
 
 def main (parent = None):
-	ScriptsBoard(parent)
+	registerRoboFontSubscriber(ScriptsBoardEmbedded)
+	# ScriptsBoardEmbedded(parent)
 
 
 if __name__ == "__main__":

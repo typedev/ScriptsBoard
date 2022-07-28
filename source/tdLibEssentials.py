@@ -7,10 +7,11 @@ def cutUniqName (glyphname):
 		return '.'.join(a)
 	return glyphname
 
-def ran_gen(size, chars=string.ascii_uppercase + string.digits):
-	return ''.join(random.choice(chars) for x in range(size))
+
 
 def getUniqName(cut=32):
+	def ran_gen (size, chars=string.ascii_uppercase + string.digits):
+		return ''.join(random.choice(chars) for x in range(size))
 	return 'uuid' + ran_gen(cut, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 def uniqueName(name = None, cut = 32):
