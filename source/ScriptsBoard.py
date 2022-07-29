@@ -1,6 +1,6 @@
 """
-ScriptsBoard is an extension for quickly launching your favorite scripts.
-The script is run as an imported module, so it must follow this format:
+ScriptsBoard is an extension that adds a quick launch bar for your favorite scripts to the Inspector.
+All scripts will run as imported modules, so it must follow this format:
 ```
 from fontParts.world import *
 
