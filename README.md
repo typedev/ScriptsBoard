@@ -1,5 +1,5 @@
 # <img height="48" src="icon.png" width="48"/> ScriptsBoard
-ScriptsBoard is an extension that adds a quick launch bar for your favorite scripts to the Inspector.
+ScriptsBoard is an extension that adds a quick launch bar for your favorite scripts to the `Inspector`.
 
 All scripts will run as imported modules, so it must follow this format:
 ```
