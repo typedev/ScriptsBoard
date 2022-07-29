@@ -76,12 +76,12 @@ class ScriptsBoard:
 		self.w = FloatingWindow((w, h),minSize = (100, 200), title = 'Scripts Board %s' % _version)
 		self.w.setPosSize(self._pos)
 
-		self.w.scriptsListing = List((0,0,-0,-0),
-		                             items = [],
-		                             allowsMultipleSelection = False,
-		                             selectionCallback = self.scriptsListSelectionCallback,
-		                             doubleClickCallback = self.scriptsListDblClickCallback
-		                             )
+		self.w.scriptsList = List((0, 0, -0, -0),
+		                          items = [],
+		                          allowsMultipleSelection = False,
+		                          selectionCallback = self.scriptsListSelectionCallback,
+		                          doubleClickCallback = self.scriptsListDblClickCallback
+		                          )
 		self.w.btnAdd = Button((-65, 5, 27, 20),
 		                       title = '+',
 		                       callback = self.btnAddCallback,
@@ -95,7 +95,7 @@ class ScriptsBoard:
 		self.w.textBox = TextEditor((0, 0, 0,-0), '', readOnly = True)
 
 		paneDescriptors = [
-			dict(view = self.w.scriptsListing, identifier = "pane1", minSize = (100), canCollapse = False),
+			dict(view = self.w.scriptsList, identifier = "pane1", minSize = (100), canCollapse = False),
 			dict(view = self.w.textBox, identifier = "pane2", minSize = (100), canCollapse = False),
 		]
 		self.w.splitView = SplitView((0, 30, -0, -32), paneDescriptors,
@@ -116,13 +116,13 @@ class ScriptsBoard:
 
 	def loadScriptsList(self):
 		slist = []
-		self.w.scriptsListing.set([])
+		self.w.scriptsList.set([])
 		slist = self._prefs.get('scripts')
 		todelete = []
 		for scriptdata in slist:
 			idname, name, path = scriptdata
 			if os.path.exists(path):
-				self.w.scriptsListing.append(name)
+				self.w.scriptsList.append(name)
 			else:
 				todelete.append(idname)
 		if todelete:
@@ -155,7 +155,7 @@ class ScriptsBoard:
 
 
 	def scriptsListDblClickCallback(self, sender):
-		idx = self.w.scriptsListing.getSelection()
+		idx = self.w.scriptsList.getSelection()
 		idname, name, path = self._prefs.get('scripts')[idx[0]]
 		path = path.replace('%s.py' % name, '')
 		print ('Running',name,path)
@@ -204,7 +204,7 @@ class ScriptsBoard:
 
 
 	def btnDelCallback(self, sender):
-		idx = self.w.scriptsListing.getSelection()
+		idx = self.w.scriptsList.getSelection()
 		idname, name, path = self._prefs.get('scripts')[idx[0]]
 		self.deleteScriptFromPrefs(idname = idname)
 
