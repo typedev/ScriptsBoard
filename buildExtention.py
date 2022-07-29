@@ -7,9 +7,9 @@
 # ------------------------------------------------------------------------
 
 name = "ScriptsBoard"
-description = 'ScriptsBoard is an extension for quickly launching your favorite scripts.'
+description = 'ScriptsBoard is an extension that adds a quick launch bar for your favorite scripts to the Inspector'
 tags = 'workspace'
-version = "0.5"
+version = "0.7"
 mainScriptsList = ['ScriptsBoard']
 
 developer = "Alexander Lubovenko"
@@ -18,8 +18,8 @@ roboFontVersion = "4.0"
 iconFile = 'icon.png'
 
 # ------------------------------------------------------------------------
-mainScript = ''
-launchAtStartUp = False
+mainScript = 'ScriptsBoard.py'
+launchAtStartUp = True
 
 makeExtension = True
 mechanic2support = True
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 			tags = '[ %s ]' % tags,
 			icon = iconRepo,
 			zipPath = zipPath,
-			dateAdded = datetime.now().strftime('%Y-%m-%y %-H:%M:%S')
+			dateAdded = datetime.now().strftime('%Y-%m-%d %-H:%M:%S')
 		)
 
 		text = '\n'.join(['%s: %s' % (k,v) for k,v in mechanic2info.items()])
