@@ -15,7 +15,23 @@ if __name__ == "__main__":
 * Also, in the code, you must explicitly import all the modules used.
 
 """
+"""
+import AppKit
 
+imageLayer = container.appendImageSublayer(
+    position=(50, 50),
+    size=(400, 100),
+    backgroundColor=(1, 1, 0, 1),
+    alignment="center"
+)
+
+image = AppKit.NSImage.imageWithSystemSymbolName_accessibilityDescription_(
+                'tortoise.fill',
+                None
+            )
+imageLayer.setImage(image)
+
+"""
 import os, sys, importlib
 from vanilla import *
 from vanilla.dialogs import getFile
@@ -64,31 +80,32 @@ class ScriptsBoardEmbedded(Subscriber):
 
 		self._prefs = ScriptBoardSettings(settings)
 		self._prefs.load()
+
 		self.w = Group((0,0,-0,-0))
 		self.w.flex1 = Group('auto')
 		self.w.flex2 = Group('auto')
 		self.w.btnEdit = Button('auto',
-		                       title = '􀤏',
+		                       title = '􀤏', # scroll
 		                       callback = self.btnEditCallback,
 		                       sizeStyle = 'regular'
 		                       )
 		self.w.btnOutput = Button('auto',
-		                        title = '􀓕',
+		                        title = '􀓕', # note.text
 		                        callback = self.btnOutputWindowCallback,
 		                        sizeStyle = 'regular'
 		                        )
 		self.w.btnAdd = Button('auto',
-		                       title = '􀣗',
+		                       title = '􀣗', # doc.badge.plus
 		                       callback = self.btnAddCallback,
 		                       sizeStyle = 'regular'
 		                       )
 		self.w.btnDel = Button('auto',
-		                       title = '􀈑',
+		                       title = '􀈑', # trash
 		                       callback = self.btnDelCallback,
 		                       sizeStyle = 'regular'
 		                       )
 		self.w.btnHelp = Button('auto',
-		                          title = '􀁜',
+		                          title = '􀁜', # questionmark.circle
 		                          callback = self.btnHelpCallback,
 		                          sizeStyle = 'regular'
 		                          )
